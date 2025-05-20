@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>AI วิเคราะห์สภาพอากาศ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>AI วิเคราะห์สภาพอากาศจากภาพ</h2>
+        <input type="file" id="imageInput">
+        <button onclick="uploadImage()">วิเคราะห์</button>
+        <div id="loading" style="display:none;">⏳ กำลังวิเคราะห์...</div>
+        <div id="resultText" class="result"></div>
+        <img id="preview" style="display:none;" />
+    </div>
+
+    <script>
+        function uploadImage() {
+            const input = document.getElementById('imageInput');
+            const file = input.files[0];
+            const resultText = document.getElementById('resultText');
+            const preview = document.getElementById('preview');
+            const loading = document.getElementById('loading');
+
+            if (!file) {
+                resultText.innerText = "กรุณาเลือกไฟล์ภาพ";
+                return;
+            }
+
+            resultText.innerText = "";
+            preview.style.display = "none";
+            loading.style.display = "block";
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = "none";
+                resultText.innerText = data.result;
+                if (data.image) {
+                    preview.src = "data:image/png;base64," + data.image;
+                    preview.style.display = "block";
+                } else {
+                    preview.style.display = "none";
+                }
+            })
+            .catch(err => {
+                loading.style.display = "none";
+                resultText.innerText = "เกิดข้อผิดพลาดในการวิเคราะห์";
+                preview.style.display = "none";
+            });
+        }
+    </script>
+</body>
+</html>
